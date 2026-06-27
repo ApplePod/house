@@ -1,45 +1,81 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
-import { rooms3d } from '../../data/floorPlan'
+import type { ThreeEvent } from '@react-three/fiber'
+import { rooms3d, type Room3D } from '../../data/floorPlan'
+
+function makeShape(floor: [number, number][]) {
+  const s = new THREE.Shape()
+  floor.forEach(([x, z], i) => {
+    if (i === 0) s.moveTo(x, -z)
+    else s.lineTo(x, -z)
+  })
+  s.closePath()
+  return s
+}
+
+function FloorMesh({
+  floor,
+  color,
+  opacity,
+  y,
+  onClick,
+}: {
+  floor: [number, number][]
+  color: string
+  opacity: number
+  y: number
+  onClick?: (e: ThreeEvent<MouseEvent>) => void
+}) {
+  const geometry = useMemo(() => new THREE.ShapeGeometry(makeShape(floor)), [floor])
+
+  return (
+    <mesh
+      rotation={[-Math.PI / 2, 0, 0]}
+      position={[0, y, 0]}
+      geometry={geometry}
+      onClick={onClick}
+    >
+      <meshStandardMaterial color={color} transparent opacity={opacity} roughness={0.9} />
+    </mesh>
+  )
+}
 
 function RoomFloor({
   room,
   selected,
   onClick,
 }: {
-  room: (typeof rooms3d)[0]
+  room: Room3D
   selected: boolean
   onClick: () => void
 }) {
-  const shape = useMemo(() => {
-    const s = new THREE.Shape()
-    room.floor.forEach(([x, z], i) => {
-      if (i === 0) s.moveTo(x, -z)
-      else s.lineTo(x, -z)
-    })
-    s.closePath()
-    return s
-  }, [room.floor])
+  const opacity = selected ? 0.85 : 0.55
 
-  const geometry = useMemo(() => new THREE.ShapeGeometry(shape), [shape])
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation()
+    onClick()
+  }
 
   return (
-    <mesh
-      rotation={[-Math.PI / 2, 0, 0]}
-      position={[0, 0.01, 0]}
-      geometry={geometry}
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick()
-      }}
-    >
-      <meshStandardMaterial
-        color={room.color}
-        transparent
-        opacity={selected ? 0.85 : 0.55}
-        roughness={0.9}
-      />
-    </mesh>
+    <group>
+      <FloorMesh floor={room.floor} color={room.color} opacity={opacity} y={0.01} onClick={handleClick} />
+      {room.raisedSection && (
+        <>
+          <FloorMesh
+            floor={room.raisedSection.floor}
+            color={room.color}
+            opacity={selected ? 0.95 : 0.75}
+            y={room.raisedSection.height + 0.01}
+            onClick={handleClick}
+          />
+          {/* 단차 옆면 */}
+          <mesh position={[6.4, room.raisedSection.height / 2, -0.55]}>
+            <boxGeometry args={[2.4, room.raisedSection.height, 1.1]} />
+            <meshStandardMaterial color={room.color} roughness={0.9} transparent opacity={0.4} />
+          </mesh>
+        </>
+      )}
+    </group>
   )
 }
 
@@ -63,3 +99,5 @@ export function RoomFloors({
     </group>
   )
 }
+
+export { rooms3d }

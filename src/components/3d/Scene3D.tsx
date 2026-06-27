@@ -2,10 +2,10 @@ import { Suspense, useEffect } from 'react'
 import { Canvas, useThree, type ThreeEvent } from '@react-three/fiber'
 import { OrbitControls, Text, Grid } from '@react-three/drei'
 import * as THREE from 'three'
-import { RoomFloors } from './RoomFloors'
-import { Walls, BaseFloor } from './Walls'
+import { RoomFloors, rooms3d } from './RoomFloors'
+import { Walls, BaseFloor, ExtensionLabel } from './Walls'
 import { FurnitureMesh } from './FurnitureMesh'
-import { rooms3d, UNIT } from '../../data/floorPlan'
+import { UNIT, SCENE_CENTER } from '../../data/floorPlan'
 import { useStore } from '../../store/useStore'
 
 function CameraController() {
@@ -13,19 +13,20 @@ function CameraController() {
   const viewMode = useStore((s) => s.viewMode)
 
   useEffect(() => {
+    const { x, z } = SCENE_CENTER
     if (viewMode === 'top') {
-      camera.position.set(4.35, 14, 2.7)
-      camera.lookAt(4.35, 0, 2.7)
+      camera.position.set(x, 14, z)
+      camera.lookAt(x, 0, z)
     } else {
-      camera.position.set(4.35, 6, -2)
-      camera.lookAt(4.35, 0, 2.7)
+      camera.position.set(x, 6, z - 4.5)
+      camera.lookAt(x, 0, z)
     }
   }, [viewMode, camera])
 
   return (
     <OrbitControls
       makeDefault
-      target={[4.35, 0, 2.7]}
+      target={[SCENE_CENTER.x, 0, SCENE_CENTER.z]}
       maxPolarAngle={viewMode === 'top' ? 0.05 : Math.PI / 2.1}
       minPolarAngle={viewMode === 'top' ? 0 : 0.3}
       minDistance={3}
@@ -90,7 +91,7 @@ function SceneContent() {
 
       <CameraController />
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[4.35, 0, 2.7]} onClick={handleFloorClick}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[SCENE_CENTER.x, 0, SCENE_CENTER.z]} onClick={handleFloorClick}>
         <planeGeometry args={[UNIT.width + 2, UNIT.depth + 2]} />
         <meshBasicMaterial visible={false} />
       </mesh>
@@ -98,6 +99,7 @@ function SceneContent() {
       <BaseFloor />
       <RoomFloors selectedRoomId={selectedRoomId} onSelectRoom={selectRoom} />
       <Walls />
+      <ExtensionLabel />
       <RoomLabels />
 
       <Grid
@@ -108,7 +110,7 @@ function SceneContent() {
         sectionColor="#444"
         cellColor="#333"
         fadeDistance={25}
-        position={[4.35, 0.005, 2.7]}
+        position={[SCENE_CENTER.x, 0.005, SCENE_CENTER.z]}
         infiniteGrid={false}
       />
 
@@ -129,7 +131,7 @@ export function Scene3D() {
   return (
     <Canvas
       shadows
-      camera={{ position: [4.35, 6, -2], fov: 55, near: 0.1, far: 100 }}
+      camera={{ position: [SCENE_CENTER.x, 6, SCENE_CENTER.z - 4.5], fov: 55, near: 0.1, far: 100 }}
       style={{ width: '100%', height: '100%' }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping

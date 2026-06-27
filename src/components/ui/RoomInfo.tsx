@@ -15,8 +15,9 @@ export function RoomInfo() {
   }
 
   const roomFurniture = furniture.filter((f) => {
-    const xs = room.floor.map(([x]) => x)
-    const zs = room.floor.map(([, z]) => z)
+    const points = [...room.floor, ...(room.raisedSection?.floor ?? [])]
+    const xs = points.map(([x]) => x)
+    const zs = points.map(([, z]) => z)
     const minX = Math.min(...xs)
     const maxX = Math.max(...xs)
     const minZ = Math.min(...zs)

@@ -3,32 +3,38 @@
 export const WALL_HEIGHT = 2.4
 export const WALL_THICKNESS = 0.12
 
+/** 침실-1 남쪽 베란다 확장 깊이 */
+export const BALCONY_EXT_DEPTH = 1.1
+/** 구 베란다 단차 (16cm) */
+export const BALCONY_STEP = 0.16
+
 export interface Room3D {
   id: string
   name: string
   area: string
   color: string
-  /** Floor polygon corners [x, z][] */
   floor: [number, number][]
   notes: string[]
+  /** 확장된 베란다 구역 (단차 있음) */
+  raisedSection?: {
+    floor: [number, number][]
+    height: number
+  }
 }
 
-/** Unit footprint: 8.7m (W) × 5.4m (D) including balcony */
 export const UNIT = {
   width: 8.7,
-  depth: 5.4,
+  depth: 5.4 + BALCONY_EXT_DEPTH,
   interiorWidth: 7.6,
   balconyWidth: 1.1,
   halfDepth: 2.7,
 }
 
 /**
- * Floor plan layout (X→ right, Z→ up on plan / toward kitchen):
- *
  *  Z=5.4  [발코니][  주방  ][    거실    ]
  *  Z=2.7  [발코니][침실-2 ][욕실][ 침실-1 ]
- *  Z=0
- *         X=0    X=1.1  X=3.8 X=5.2  X=7.6 X=8.7
+ *  Z=0    [발코니][       ][     ][ 침실-1 ]
+ *  Z=-1.1 [              ][     ][ 확장부 ]  ← 베란다 확장
  */
 export const rooms3d: Room3D[] = [
   {
@@ -42,7 +48,7 @@ export const rooms3d: Room3D[] = [
       [1.1, 5.4],
       [0, 5.4],
     ],
-    notes: ['단차 16cm', '창호·방수 확인'],
+    notes: ['단차 16cm', '주방·침실-2 연결'],
   },
   {
     id: 'kitchen',
@@ -99,7 +105,7 @@ export const rooms3d: Room3D[] = [
   {
     id: 'bedroom1',
     name: '침실-1',
-    area: '8㎡',
+    area: '11㎡',
     color: '#90c9b0',
     floor: [
       [5.2, 0],
@@ -107,29 +113,50 @@ export const rooms3d: Room3D[] = [
       [7.6, 2.7],
       [5.2, 2.7],
     ],
-    notes: ['스타일러 배치', '붙박이장·책상'],
+    raisedSection: {
+      floor: [
+        [5.2, -BALCONY_EXT_DEPTH],
+        [7.6, -BALCONY_EXT_DEPTH],
+        [7.6, 0],
+        [5.2, 0],
+      ],
+      height: BALCONY_STEP,
+    },
+    notes: [
+      '✅ 베란다 확장 완료',
+      '단차 16cm (구 발코니)',
+      '스타일러 배치',
+      '붙박이장 342mm',
+      '책상·수납 배치',
+    ],
   },
 ]
 
-/** Wall segments: [x1, z1, x2, z2] exterior and interior walls */
 export const walls: [number, number, number, number][] = [
-  // Exterior
-  [0, 0, 8.7, 0],
+  // Exterior south — 침실-1 확장부
+  [0, 0, 5.2, 0],
+  [5.2, -BALCONY_EXT_DEPTH, 7.6, -BALCONY_EXT_DEPTH],
+  [7.6, -BALCONY_EXT_DEPTH, 8.7, 0],
+  // Exterior east
   [8.7, 0, 8.7, 5.4],
+  // Exterior north
   [8.7, 5.4, 0, 5.4],
+  // Exterior west
   [0, 5.4, 0, 0],
   // Balcony divider
   [1.1, 0, 1.1, 5.4],
-  // Horizontal mid wall (bedrooms / living)
+  // Mid wall
   [1.1, 2.7, 7.6, 2.7],
-  // Vertical interior walls (bottom row)
+  // Interior vertical
   [3.8, 0, 3.8, 2.7],
   [5.2, 0, 5.2, 2.7],
-  // Kitchen / living divider (partial - open plan with opening)
+  // 침실-1 확장부 측벽
+  [5.2, -BALCONY_EXT_DEPTH, 5.2, 0],
+  [7.6, -BALCONY_EXT_DEPTH, 7.6, 2.7],
+  // Kitchen / living
   [3.8, 2.7, 3.8, 5.4],
 ]
 
-/** Door openings: [x, z, width, rotation] */
 export const doors: { x: number; z: number; width: number; rot: number; label: string }[] = [
   { x: 7.0, z: 5.4, width: 0.9, rot: 0, label: '현관' },
   { x: 3.8, z: 1.35, width: 0.8, rot: Math.PI / 2, label: '침실-2' },
@@ -142,4 +169,9 @@ export const houseInfo = {
   title: '201호 집꾸미기',
   unit: '201호',
   address: '서울특별시 송파구 백제고분로18길 8-17',
+}
+
+export const SCENE_CENTER = {
+  x: 4.35,
+  z: (5.4 - BALCONY_EXT_DEPTH) / 2,
 }
