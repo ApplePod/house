@@ -40,8 +40,9 @@ function RoomLabels() {
   return (
     <>
       {rooms3d.map((room) => {
-        const cx = room.floor.reduce((s, [x]) => s + x, 0) / room.floor.length
-        const cz = room.floor.reduce((s, [, z]) => s + z, 0) / room.floor.length
+        const pts = [...room.floor, ...(room.raisedSection?.floor ?? [])]
+        const cx = pts.reduce((s, [x]) => s + x, 0) / pts.length
+        const cz = pts.reduce((s, [, z]) => s + z, 0) / pts.length
         return (
           <Text
             key={room.id}

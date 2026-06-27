@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import type { ThreeEvent } from '@react-three/fiber'
-import { rooms3d, type Room3D, BALCONY_WIDTH, UNIT } from '../../data/floorPlan'
+import { rooms3d, type Room3D } from '../../data/floorPlan'
 
 function makeShape(floor: [number, number][]) {
   const s = new THREE.Shape()
@@ -11,6 +11,17 @@ function makeShape(floor: [number, number][]) {
   })
   s.closePath()
   return s
+}
+
+function bounds(floor: [number, number][]) {
+  const xs = floor.map(([x]) => x)
+  const zs = floor.map(([, z]) => z)
+  return {
+    cx: (Math.min(...xs) + Math.max(...xs)) / 2,
+    cz: (Math.min(...zs) + Math.max(...zs)) / 2,
+    w: Math.max(...xs) - Math.min(...xs),
+    d: Math.max(...zs) - Math.min(...zs),
+  }
 }
 
 function FloorMesh({
@@ -27,14 +38,8 @@ function FloorMesh({
   onClick?: (e: ThreeEvent<MouseEvent>) => void
 }) {
   const geometry = useMemo(() => new THREE.ShapeGeometry(makeShape(floor)), [floor])
-
   return (
-    <mesh
-      rotation={[-Math.PI / 2, 0, 0]}
-      position={[0, y, 0]}
-      geometry={geometry}
-      onClick={onClick}
-    >
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, y, 0]} geometry={geometry} onClick={onClick}>
       <meshStandardMaterial color={color} transparent opacity={opacity} roughness={0.9} />
     </mesh>
   )
@@ -50,7 +55,6 @@ function RoomFloor({
   onClick: () => void
 }) {
   const opacity = selected ? 0.85 : 0.55
-
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
     onClick()
@@ -59,28 +63,25 @@ function RoomFloor({
   return (
     <group>
       <FloorMesh floor={room.floor} color={room.color} opacity={opacity} y={0.01} onClick={handleClick} />
-      {room.raisedSection && (
-        <>
-          <FloorMesh
-            floor={room.raisedSection.floor}
-            color={room.color}
-            opacity={selected ? 0.95 : 0.75}
-            y={room.raisedSection.height + 0.01}
-            onClick={handleClick}
-          />
-          {/* 단차 옆면 */}
-          <mesh
-            position={[
-              room.raisedSection.floor[0][0] + BALCONY_WIDTH / 2,
-              room.raisedSection.height / 2,
-              room.raisedSection.floor[0][1] + UNIT.halfDepth / 2,
-            ]}
-          >
-            <boxGeometry args={[BALCONY_WIDTH, room.raisedSection.height, UNIT.halfDepth]} />
-            <meshStandardMaterial color={room.color} roughness={0.9} transparent opacity={0.35} />
-          </mesh>
-        </>
-      )}
+      {room.raisedSection && (() => {
+        const { cx, cz, w, d } = bounds(room.raisedSection.floor)
+        const h = room.raisedSection.height
+        return (
+          <>
+            <FloorMesh
+              floor={room.raisedSection.floor}
+              color={room.color}
+              opacity={selected ? 0.95 : 0.75}
+              y={h + 0.01}
+              onClick={handleClick}
+            />
+            <mesh position={[cx, h / 2, cz]}>
+              <boxGeometry args={[w, h, d]} />
+              <meshStandardMaterial color={room.color} roughness={0.9} transparent opacity={0.3} />
+            </mesh>
+          </>
+        )
+      })()}
     </group>
   )
 }

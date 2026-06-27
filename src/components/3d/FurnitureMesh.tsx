@@ -33,7 +33,7 @@ export function FurnitureMesh({ item, selected, onSelect, onMove }: Props) {
     e.stopPropagation()
     const nx = Math.round((e.point.x - dragOffset.current.x) * 20) / 20
     const nz = Math.round((e.point.z - dragOffset.current.z) * 20) / 20
-    onMove(Math.max(0.2, Math.min(8.5, nx)), Math.max(0.2, Math.min(5.2, nz)))
+    onMove(Math.max(0.2, Math.min(8.2, nx)), Math.max(-1.0, Math.min(5.1, nz)))
   }
 
   const handlePointerUp = () => setDragging(false)
