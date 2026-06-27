@@ -3,7 +3,7 @@ import { Canvas, useThree, type ThreeEvent } from '@react-three/fiber'
 import { OrbitControls, Text, Grid } from '@react-three/drei'
 import * as THREE from 'three'
 import { RoomFloors, rooms3d } from './RoomFloors'
-import { Walls, BaseFloor, ExtensionLabel } from './Walls'
+import { Walls, BaseFloor } from './Walls'
 import { FurnitureMesh } from './FurnitureMesh'
 import { UNIT, SCENE_CENTER } from '../../data/floorPlan'
 import { useStore } from '../../store/useStore'
@@ -100,7 +100,6 @@ function SceneContent() {
       <BaseFloor />
       <RoomFloors selectedRoomId={selectedRoomId} onSelectRoom={selectRoom} />
       <Walls />
-      <ExtensionLabel />
       <RoomLabels />
 
       <Grid
