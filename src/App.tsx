@@ -1,111 +1,41 @@
-import { useState } from 'react'
-import { Header } from './components/Header'
-import { CompareSlider } from './components/CompareSlider'
-import { FloorPlanViewer } from './components/FloorPlanViewer'
-import { RoomPanel } from './components/RoomPanel'
-import { TabNav, type Tab } from './components/TabNav'
-import { dimensions, houseInfo, rooms } from './data/house'
-
-const BASE = import.meta.env.BASE_URL
+import { useEffect } from 'react'
+import { Header, RoomInfo } from './components/ui/RoomInfo'
+import { Sidebar } from './components/ui/Sidebar'
+import { Scene3D } from './components/3d/Scene3D'
+import { useStore } from './store/useStore'
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>('compare')
-  const [selectedRoom, setSelectedRoom] = useState<string | null>(null)
+  const { placingType, setPlacingType, selectedId, updateFurniture } = useStore()
 
-  const selected = rooms.find((r) => r.id === selectedRoom) ?? null
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setPlacingType(null)
+      if (e.key === 'r' || e.key === 'R') {
+        if (selectedId) {
+          const item = useStore.getState().furniture.find((f) => f.id === selectedId)
+          if (item) updateFurniture(selectedId, { rotation: item.rotation + Math.PI / 2 })
+        }
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [setPlacingType, selectedId, updateFurniture])
 
   return (
     <div className="app">
       <Header />
-
-      <main className="main">
-        <TabNav active={tab} onChange={setTab} />
-
-        {tab === 'compare' && (
-          <section className="section">
-            <div className="section-intro">
-              <h2>평면도 비교</h2>
-              <p>
-                공식 건축물현황도와 Archisketch 실측 스케치를 슬라이더로 겹쳐
-                보며 차이를 확인하세요.
-              </p>
+      <div className="workspace">
+        <Sidebar />
+        <main className="canvas-area">
+          {placingType && (
+            <div className="placing-banner">
+              📍 배치 모드 — 클릭해서 가구 배치 · ESC 취소
             </div>
-            <CompareSlider
-              beforeLabel="공식 평면도"
-              afterLabel="실측 스케치"
-              beforeSrc={`${BASE}assets/floor-plan-official.png`}
-              afterSrc={`${BASE}assets/floor-plan-sketch.jpg`}
-            />
-            <div className="dimension-grid">
-              {dimensions.map((d) => (
-                <div key={d.label} className="dimension-card">
-                  <span className="dimension-label">{d.label}</span>
-                  <span className="dimension-value">{d.value}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {tab === 'official' && (
-          <section className="section">
-            <div className="section-intro">
-              <h2>공식 평면도</h2>
-              <p>
-                {houseInfo.address} · {houseInfo.unit} · {houseInfo.floor} ·
-                축척 {houseInfo.scale}
-              </p>
-            </div>
-            <div className="single-plan">
-              <img
-                src={`${BASE}assets/floor-plan-official.png`}
-                alt="공식 건축물현황도 평면도"
-              />
-            </div>
-          </section>
-        )}
-
-        {tab === 'sketch' && (
-          <section className="section">
-            <div className="section-intro">
-              <h2>실측 스케치</h2>
-              <p>
-                Archisketch에서 작성한 실측 평면도. 벽·문·가구 치수와 꾸미기
-                메모가 손글씨로 기록되어 있습니다.
-              </p>
-            </div>
-            <div className="single-plan">
-              <img
-                src={`${BASE}assets/floor-plan-sketch.jpg`}
-                alt="Archisketch 실측 스케치"
-              />
-            </div>
-          </section>
-        )}
-
-        {tab === 'rooms' && (
-          <section className="section rooms-section">
-            <div className="section-intro">
-              <h2>공간별 보기</h2>
-              <p>평면도에서 공간을 클릭하면 실측 메모와 꾸미기 계획을 확인할 수 있습니다.</p>
-            </div>
-            <div className="rooms-layout">
-              <FloorPlanViewer
-                rooms={rooms}
-                selectedId={selectedRoom}
-                onSelect={setSelectedRoom}
-                imageSrc={`${BASE}assets/floor-plan-official.png`}
-                imageAlt="인터랙티브 평면도"
-              />
-              <RoomPanel room={selected} />
-            </div>
-          </section>
-        )}
-      </main>
-
-      <footer className="footer">
-        <p>{houseInfo.title} · {houseInfo.address}</p>
-      </footer>
+          )}
+          <Scene3D />
+        </main>
+        <RoomInfo />
+      </div>
     </div>
   )
 }
