@@ -67,7 +67,7 @@ export function ExtensionLabel() {
       color="#5a8a70"
       anchorX="center"
     >
-      베란다 확장
+      베란다 흡수
     </Text>
   )
 }

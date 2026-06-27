@@ -18,7 +18,7 @@ function CameraController() {
       camera.position.set(x, 14, z)
       camera.lookAt(x, 0, z)
     } else {
-      camera.position.set(x, 6, z - 4.5)
+      camera.position.set(x, 6, z - 3.5)
       camera.lookAt(x, 0, z)
     }
   }, [viewMode, camera])
@@ -132,7 +132,7 @@ export function Scene3D() {
   return (
     <Canvas
       shadows
-      camera={{ position: [SCENE_CENTER.x, 6, SCENE_CENTER.z - 4.5], fov: 55, near: 0.1, far: 100 }}
+      camera={{ position: [SCENE_CENTER.x, 6, SCENE_CENTER.z - 3.5], fov: 55, near: 0.1, far: 100 }}
       style={{ width: '100%', height: '100%' }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping
