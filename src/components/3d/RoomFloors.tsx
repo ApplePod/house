@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import type { ThreeEvent } from '@react-three/fiber'
-import { rooms3d, type Room3D } from '../../data/floorPlan'
+import { rooms3d, type Room3D, BALCONY_WIDTH, UNIT } from '../../data/floorPlan'
 
 function makeShape(floor: [number, number][]) {
   const s = new THREE.Shape()
@@ -69,9 +69,15 @@ function RoomFloor({
             onClick={handleClick}
           />
           {/* 단차 옆면 */}
-          <mesh position={[6.4, room.raisedSection.height / 2, -0.55]}>
-            <boxGeometry args={[2.4, room.raisedSection.height, 1.1]} />
-            <meshStandardMaterial color={room.color} roughness={0.9} transparent opacity={0.4} />
+          <mesh
+            position={[
+              room.raisedSection.floor[0][0] + BALCONY_WIDTH / 2,
+              room.raisedSection.height / 2,
+              room.raisedSection.floor[0][1] + UNIT.halfDepth / 2,
+            ]}
+          >
+            <boxGeometry args={[BALCONY_WIDTH, room.raisedSection.height, UNIT.halfDepth]} />
+            <meshStandardMaterial color={room.color} roughness={0.9} transparent opacity={0.35} />
           </mesh>
         </>
       )}

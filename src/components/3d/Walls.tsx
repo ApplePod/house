@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import { Text } from '@react-three/drei'
-import { WALL_HEIGHT, WALL_THICKNESS, walls, doors, UNIT, SCENE_CENTER, BALCONY_EXT_DEPTH } from '../../data/floorPlan'
+import { WALL_HEIGHT, WALL_THICKNESS, walls, doors, UNIT, SCENE_CENTER, BALCONY_EXT_CENTER } from '../../data/floorPlan'
 
 function WallSegment({ x1, z1, x2, z2 }: { x1: number; z1: number; x2: number; z2: number }) {
   const length = Math.sqrt((x2 - x1) ** 2 + (z2 - z1) ** 2)
@@ -45,10 +45,7 @@ export function Walls() {
 }
 
 export function BaseFloor() {
-  const geometry = useMemo(
-    () => new THREE.PlaneGeometry(UNIT.width, UNIT.depth),
-    [],
-  )
+  const geometry = useMemo(() => new THREE.PlaneGeometry(UNIT.width, UNIT.depth), [])
   return (
     <mesh
       rotation={[-Math.PI / 2, 0, 0]}
@@ -60,19 +57,16 @@ export function BaseFloor() {
   )
 }
 
-/** 확장부 라벨 */
 export function ExtensionLabel() {
   return (
     <Text
-      position={[6.4, 0.2, -0.55]}
+      position={[BALCONY_EXT_CENTER.x, 0.2, BALCONY_EXT_CENTER.z]}
       rotation={[-Math.PI / 2, 0, 0]}
-      fontSize={0.15}
+      fontSize={0.13}
       color="#5a8a70"
       anchorX="center"
     >
-      베란다 확장
+      구 발코니
     </Text>
   )
 }
-
-export { BALCONY_EXT_DEPTH }
